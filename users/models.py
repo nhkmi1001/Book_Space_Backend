@@ -60,18 +60,12 @@ class User(AbstractBaseUser):
         # Simplest possible answer: Yes, always
         return True
 
+
     @property
     def is_staff(self):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
-
-class Inquiry(models.Model): #문의글
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.TextField()
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now = True)
 
 
 class Taste(models.Model):
