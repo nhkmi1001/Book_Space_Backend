@@ -13,6 +13,8 @@ from articles import crowling
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from articles.recom import recommendation
+from drf_yasg.utils import swagger_auto_schema
+
 
 # 파일 저장
 import random
@@ -57,7 +59,6 @@ class ManyBookView(APIView): #많이 선택 된 책
 
 class UserArticleView(APIView): #추천머신러닝을 통한 결과물 메인페이지에 보여줄거
     def get(self, request):
-
         user_key = request.GET['user_key']
         book_id_list = []
         taste_id = Taste.objects.filter(user_id=int(user_key))
@@ -118,6 +119,11 @@ class ArticleDetailView(APIView):
         article = get_object_or_404(Article, id=article_id)
         serializer = ArticleDetailSerializer(article)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        operation_summary="게시글 삭제",
+        responses={200:"성공", 401:"인증 오류", 403:"접근 권한 에러", 500:"서버 에러"},
+    )
     def delete(self, request, article_id): # 게시글 삭제하기
         article = get_object_or_404(Article, id=article_id)
         if request.user == article.user:
@@ -125,6 +131,12 @@ class ArticleDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response("작성자가 아닙니다!", status=status.HTTP_403_FORBIDDEN)
+        
+    @swagger_auto_schema(
+        request_body=CommentCreateSerializer,
+        operation_summary="댓글 작성",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
     def post(self, request, article_id):
         serializer = CommentCreateSerializer(data=request.data)
         if serializer.is_valid():
@@ -132,6 +144,12 @@ class ArticleDetailView(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    @swagger_auto_schema(
+        request_body=ArticlePutSerializer,
+        operation_summary="게시글 수정",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
     def put(self, request, article_id):
         article = get_object_or_404(Article, id=article_id)
         data=request.data
@@ -157,12 +175,16 @@ class ArticleDetailView(APIView):
 
 class CreateArticleView(APIView):
     def get(self, request, book_id):
-
         book_id = get_object_or_404(Book, id=book_id)
         serializer = BookRecommendSerializer(book_id)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request, book_id): #main2에서 검색해서 책 선택하고 게시글 작성으로 갈 때 post
+    
+    @swagger_auto_schema(
+        request_body=ArticleAddSerializer,
+        operation_summary="게시글 작성 책 있을 때",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
+    def post(self, request, book_id): #피드페이지에서 검색해서 책 선택하고 게시글 작성으로 갈 때 post
         book = get_object_or_404(Book, id=book_id)
         title = book.book_title
         book_id = book.id
@@ -183,7 +205,12 @@ class BookSearchView(APIView): #무슨책 있는지 검색하는 곳
             book = Book.objects.filter(Q(book_title__icontains=search_title))
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @swagger_auto_schema(
+        request_body=ArticleCreateSerializer,
+        operation_summary="게시글 작성 책 없을 때",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
     def post(self, request): # 새로작성 하기 버튼 눌렀을 때
         serializer = ArticleCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True) # True면 여기서 코드가 끝남
@@ -193,6 +220,11 @@ class BookSearchView(APIView): #무슨책 있는지 검색하는 곳
 
 
 class CommentEditView(APIView):
+    @swagger_auto_schema(
+        request_body=CommentCreateSerializer,
+        operation_summary="댓글 수정",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
     def put(self, request, article_id, comment_id):
         comment = get_object_or_404(Comment, id=comment_id)
         if request.user == comment.user:
@@ -204,6 +236,11 @@ class CommentEditView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response("작성자가 아닙니다!", status=status.HTTP_403_FORBIDDEN)
+        
+    @swagger_auto_schema(
+        operation_summary="댓글 삭제",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )    
     def delete(self, request, comment_id, article_id):
         comment = get_object_or_404(Comment, id=comment_id)
         article = get_object_or_404(Article, id=article_id)
@@ -215,6 +252,10 @@ class CommentEditView(APIView):
 
 
 class LikeView(APIView): #좋아요
+    @swagger_auto_schema(
+        operation_summary="좋아요",
+        responses={200:"성공", 400:"잘못된 요청", 401:"권한 없음", 500:"서버 에러"}
+    )
     def post(self, request, article_id):
         article = get_object_or_404(Article, id = article_id)
         if request.user in article.likes.all():

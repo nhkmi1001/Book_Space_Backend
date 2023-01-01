@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import User, Inquiry, Taste
+from users.models import User, Taste
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from articles.serializers import ArticleImageSerializer, BookRecommendSerializer
 from users.token import account_activation_token
@@ -8,24 +8,15 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
 from django.contrib.auth.hashers import check_password
+import threading
 
-class InquirySerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    updated_at = serializers.SerializerMethodField()
-
-
-    def get_updated_at(self, obj):
-        return obj.updated_at.strftime('%Y-%m-%d')
-
-
-    def get_user(self, obj):
-        return obj.user.email
-
-
-    class Meta:
-        model = Inquiry
-        fields = "__all__"
-
+class EmailThread(threading.Thread):
+    def __init__(self, email):
+        self.email = email
+        threading.Thread.__init__(self)
+        
+    def run(self):
+        self.email.send()
 
 class UserSerializer(serializers.ModelSerializer):
     passwordcheck = serializers.CharField(style={'input_type':'password'}, required=False)
@@ -36,7 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs={
             'password':{'write_only':True, 'required': False},
 
-        }
+        }        
+        
     def create(self, validated_data):
         user = super().create(validated_data)
         password = user.password
@@ -52,11 +44,10 @@ class UserSerializer(serializers.ModelSerializer):
         mail_subject = 'Thumbook 회원가입 인증 이메일입니다.'
         to_email = user.email
         email = EmailMessage(mail_subject, message, to=[to_email])
+        EmailThread(email).start()
         email.content_subtype = "html"
-        email.send()
-
         return validated_data
-
+    
 
     def update(self, obj, validated_data):
         obj.username = validated_data.get('username', obj.username)
@@ -75,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
                 detail={"error":"비밀번호가 맞지 않습니다"}
             )
 
-        if not len(data.get("password", "")) >= 2:
+        if not len(data.get("password", "")) >= 8:
             raise serializers.ValidationError(
                 detail={"error": "password의 길이는 8자리 이상이어야합니다."}
             )
@@ -87,7 +78,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         if User.objects.filter(email=data).exists():
             raise serializers.ValidationError("이메일이 이미 존재합니다.")
-
         return data
 
 class UserNameSerializer(serializers.ModelSerializer):
