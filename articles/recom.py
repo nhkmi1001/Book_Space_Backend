@@ -3,8 +3,8 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
 def recommendation(choice_id):
-    books=pd.read_csv("../BOOK_SPACE/articles/database/bookdata.csv", encoding='UTF-8')
-    ratings=pd.read_csv("../BOOK_SPACE/articles/database/ratings.csv", encoding='UTF-8')
+    books=pd.read_csv("./articles/database/bookdata.csv", encoding='UTF-8')
+    ratings=pd.read_csv("./articles/database/ratings.csv", encoding='UTF-8')
 
     book_ratings = pd.merge(ratings,books, on="bookId" )
 
