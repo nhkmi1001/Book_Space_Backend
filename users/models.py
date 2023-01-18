@@ -67,7 +67,7 @@ class User(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-
 class Taste(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     choice = models.IntegerField()
+    
