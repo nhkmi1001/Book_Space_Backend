@@ -59,6 +59,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         password=data.get('password')
         passwordcheck=data.pop('passwordcheck')
+        print(passwordcheck)
 
         if password != passwordcheck:
             raise serializers.ValidationError(

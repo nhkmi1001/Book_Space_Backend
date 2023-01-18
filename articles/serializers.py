@@ -10,6 +10,7 @@ class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     profile_img = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
 
     def get_user(self, obj):
         return obj.user.username
@@ -17,11 +18,11 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_user_id(self, obj):
         return obj.user.id
 
-    def get_user_id(self, obj):
-        return obj.user.id
-
     def get_profile_img(self, obj):
         return obj.user.profile_img.url
+    
+    def get_updated_at(self, obj):
+        return obj.updated_at.strftime('%Y-%m-%d %H:%M:%S')
 
     class Meta:
         model = Comment
@@ -48,9 +49,6 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
     def get_user_id(self, obj):
         return obj.user.id
 
-    def get_user_id(self, obj):
-        return obj.user.id
-
     def get_updated_at(self, obj):
         return obj.updated_at.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -59,6 +57,7 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.likes.count()
+    
     class Meta:
         model = Article
         fields = "__all__"

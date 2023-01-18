@@ -39,7 +39,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     username = models.CharField(max_length=100,unique=True)
-    profile_img = models.ImageField(null=True, blank=True, upload_to='users',default='fb-thankful.png')
+    profile_img = models.ImageField(null=True, blank=True, upload_to='users', default='users/fb-thankful.png')
     like = models.BooleanField(default=False)
     select_books = models.ManyToManyField('articles.Book', related_name="book_user")
     objects = UserManager()

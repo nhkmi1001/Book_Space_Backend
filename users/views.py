@@ -102,8 +102,11 @@ class MypageView(APIView):
     )
     def delete(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        user.delete()
-        return Response(status=status.HTTP_202_ACCEPTED)
+        if user == request.user:
+            user.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response("해당 사용자가 아닙니다.", status=status.HTTP_401_UNAUTHORIZED)
 
 class LikeArticlesView(APIView):
     def get(self, request, user_id):
