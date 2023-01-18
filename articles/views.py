@@ -14,7 +14,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from articles.recom import recommendation
 from drf_yasg.utils import swagger_auto_schema
-
+import time
 
 # 파일 저장
 import random
@@ -198,11 +198,13 @@ class CreateArticleView(APIView):
 class BookSearchView(APIView): #무슨책 있는지 검색하는 곳
     def get(self, request):
         search_title = request.GET.get('search_content')
+        print(search_title)
         if search_title == None :
             book = Book.objects.all()
         elif search_title:
             search_title = search_title.replace(" ","")
             book = Book.objects.filter(Q(book_title__icontains=search_title))
+            print(book)
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
